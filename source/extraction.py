@@ -115,7 +115,7 @@ def convert_to_wav(input_file, output_file):
 
 
 def save_output_reference(filename):
-    with open("filename_audio.txt", "a") as f:
+    with open("yt_links/audio.txt", "a") as f:
         f.write(filename + "\n")
 
 

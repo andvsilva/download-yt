@@ -5,7 +5,7 @@ start_time = time.time()
 
 # Define the path to your text file
 path_yt = 'yt_links/links.txt'
-path_audios = 'filename_audio.txt'
+path_audios = 'yt_links/audio.txt'
 
 # script master to run ALL the steps of the project. 
 def main():
@@ -22,7 +22,7 @@ def main():
         print(f'>>> youtube_url: {youtube_url}')
 
         print('Downloading audio from youtube...')
-        subprocess.run(['python3', 'extraction.py', youtube_url])
+        subprocess.run(['python3', 'source/extraction.py', youtube_url])
 
     print("Finished download from youtube.")
     with open(path_audios, 'r') as file:
@@ -36,7 +36,7 @@ def main():
         print(f'>>> audio_link: {audio_link}')
 
         print('transcripting audio to text file...')
-        subprocess.run(['python3', 'transcribe_audio.py', audio_link])
+        subprocess.run(['python3', 'source/transcribe_audio.py', audio_link])
 
 
 if __name__ == "__main__":
