@@ -1,42 +1,97 @@
 import time
 import subprocess
+import os
+import sys
 
 start_time = time.time()
 
-# Define the path to your text file
-path_yt = 'yt_links/links.txt'
-path_audios = 'yt_links/audio.txt'
+# Paths
+PATH_YT = 'yt_links/links.txt'
+PATH_AUDIOS = 'yt_links/audio.txt'
+AUDIO_DIR = 'audios'
 
-# script master to run ALL the steps of the project. 
+
+def run_extraction():
+    print('🚀 Downloading all audios (parallel)...')
+
+    result = subprocess.run(
+        ['python3', 'source/extraction.py', PATH_YT]
+    )
+
+    if result.returncode != 0:
+        print("❌ Extraction failed")
+        sys.exit(1)
+
+    print("✅ Finished download from YouTube.\n")
+
+
+def load_audio_list():
+    # Case 1: audio.txt exists
+    if os.path.exists(PATH_AUDIOS):
+        print("📄 Loading audio list...")
+        with open(PATH_AUDIOS, 'r') as file:
+            return [line.strip() for line in file if line.strip()]
+
+    # Case 2: fallback
+    print("⚠ audio.txt not found → scanning 'audios/' folder...")
+
+    if not os.path.exists(AUDIO_DIR):
+        print("❌ No audios found. Extraction failed.")
+        sys.exit(1)
+
+    files = [
+        os.path.join(AUDIO_DIR, f)
+        for f in os.listdir(AUDIO_DIR)
+        if f.endswith(".wav")
+    ]
+
+    if not files:
+        print("❌ No audio files found.")
+        sys.exit(1)
+
+    return files
+
+
+def run_transcription(audio_files):
+    print(f"\n🎧 Transcribing {len(audio_files)} files...\n")
+
+    for audio in audio_files:
+        print(f'>>> {audio}')
+
+        subprocess.run([
+            'python3',
+            'source/transcribe_audio.py',
+            audio
+        ])
+
+
+def cleanup():
+    if os.path.exists(PATH_AUDIOS):
+        os.remove(PATH_AUDIOS)
+        print("\n🧹 Cleaned audio.txt")
+
+
 def main():
+    # Validate links file
+    if not os.path.exists(PATH_YT):
+        print(f"❌ Links file not found: {PATH_YT}")
+        sys.exit(1)
 
-    # Open the file and read each line
-    with open(path_yt, 'r') as file:
-        yt_links = file.readlines()
+    # STEP 1: Download (parallel inside extraction.py)
+    run_extraction()
 
-    # Strip whitespace from each line (e.g., newline characters) and print the links
-    yt_links = [youtube_link.strip() for youtube_link in yt_links]
+    # STEP 2: Load audios
+    audio_files = load_audio_list()
 
-    for youtube_url in yt_links:
-        
-        print(f'>>> youtube_url: {youtube_url}')
+    # STEP 3: Transcribe
+    run_transcription(audio_files)
 
-        print('Downloading audio from youtube...')
-        subprocess.run(['python3', 'source/extraction.py', youtube_url])
+    # STEP 4: Cleanup
+    cleanup()
 
-    print("Finished download from youtube.")
-    with open(path_audios, 'r') as file:
-        audios_links = file.readlines()
-
-    # Strip whitespace from each line (e.g., newline characters) and print the links
-    audios_links = [audios_link.strip() for audios_link in audios_links]
-
-    print(audios_links)
-    for audio_link in audios_links:
-        print(f'>>> audio_link: {audio_link}')
-
-        print('transcripting audio to text file...')
-        subprocess.run(['python3', 'source/transcribe_audio.py', audio_link])
+    # TIME
+    elapsed = time.time() - start_time
+    print(f"\n⏱ Total time: {elapsed:.2f} seconds")
 
 
 if __name__ == "__main__":
