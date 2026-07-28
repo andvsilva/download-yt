@@ -1,5 +1,3 @@
-Here’s a complete and clean `README.md` for your project, explaining everything clearly:
-
 ---
 
 # 🎧 YouTube Audio Extraction + Transcription Pipeline
